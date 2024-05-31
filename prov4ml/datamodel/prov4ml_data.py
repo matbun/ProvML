@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from .artifact_data import ArtifactInfo
 from .parameter_data import ParameterInfo
 from .metric_data import MetricInfo
+from ..provenance.context import Context
 
 class Prov4MLData:
     """
@@ -16,9 +17,9 @@ class Prov4MLData:
         experiment_name (str): The name of the experiment.
     """
     def __init__(self) -> None:
-        self.metrics: Dict[str, MetricInfo] = {}
+        self.metrics: Dict[(str, Context), MetricInfo] = {}
         self.parameters: Dict[str, ParameterInfo] = {}
-        self.artifacts: Dict[str, ArtifactInfo] = {}
+        self.artifacts: Dict[(str, Context), ArtifactInfo] = {}
 
         self.experiment_name = "test_experiment"
 
@@ -32,9 +33,9 @@ class Prov4MLData:
             step (int): The step number for the metric.
             context (Optional[Any]): The context of the metric. Defaults to None.
         """
-        if metric not in self.metrics:
-            self.metrics[metric] = MetricInfo(metric, context)
-        self.metrics[metric].add_metric(value, step)
+        if (metric, context) not in self.metrics:
+            self.metrics[(metric, context)] = MetricInfo(metric, context)
+        self.metrics[(metric, context)].add_metric(value, step)
 
     def add_parameter(self, parameter: str, value: Any) -> None:
         """
@@ -64,7 +65,7 @@ class Prov4MLData:
             context (Optional[Any]): The context of the artifact. Defaults to None.
             timestamp (Optional[int]): The timestamp of the artifact. Defaults to None.
         """
-        self.artifacts[artifact_name] = ArtifactInfo(artifact_name, value, step, context=context, timestamp=timestamp)
+        self.artifacts[(artifact_name, context)] = ArtifactInfo(artifact_name, value, step, context=context, timestamp=timestamp)
 
     def get_artifacts(self) -> List[ArtifactInfo]:
         """

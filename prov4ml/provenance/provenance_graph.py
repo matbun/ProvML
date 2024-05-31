@@ -83,9 +83,17 @@ def first_level_prov(
     doc.hadMember(experiment,run_entity).add_attributes({'prov:level':Prov4MLLOD.LVL_1})
     doc.wasGeneratedBy(run_entity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
 
-    for name, metric in PROV4ML_DATA.metrics.items():
+    for (name, ctx), metric in PROV4ML_DATA.metrics.items():
+        if not doc.get_record(f'{name}_{ctx}'):
+            metric_entity = doc.entity(f'{name}_{ctx}',{
+                'prov-ml:type':Prov4MLLOD.get_lv1_attr('Metric'),
+                'prov:level':Prov4MLLOD.LVL_1,
+            })
+        else:
+            metric_entity = doc.get_record(f'{name}_{ctx}')[0]
+
         for epoch, metric_per_epoch in metric.epochDataList.items():
-            if metric.context == Context.TRAINING: 
+            if ctx == Context.TRAINING: 
                 if not doc.get_record(f'epoch_{epoch}'):
                     train_activity=doc.activity(f'epoch_{epoch}',other_attributes={
                     "prov-ml:type": Prov4MLLOD.get_lv1_attr("TrainingExecution"),
@@ -93,61 +101,52 @@ def first_level_prov(
                     })
                     doc.wasStartedBy(train_activity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
 
-                metric_entity = doc.entity(f'{name}',{
-                    'prov-ml:type':Prov4MLLOD.get_lv1_attr('Metric'),
-                    'prov:level':Prov4MLLOD.LVL_1,
-                })
-
                 for metric_value in metric_per_epoch:
                     metric_entity.add_attributes({
                         'prov-ml:step-value':Prov4MLLOD.get_lv1_epoch_value(epoch, metric_value),
+                        'prov-ml:context': Prov4MLLOD.get_lv1_attr(ctx),
                     })
                 doc.wasGeneratedBy(metric_entity,f'epoch_{epoch}',
                                     identifier=f'{name}_{epoch}_gen',
                                     other_attributes={'prov:level':Prov4MLLOD.LVL_1})
                 
-            # elif metric.context == Context.VALIDATION:
-            #     if not doc.get_record(f'epoch_{epoch}'):
-            #         train_activity=doc.activity(f'epoch_{epoch}',other_attributes={
-            #         "prov-ml:type": Prov4MLLOD.get_lv1_attr("ValidationExecution"),
-            #         'prov:level':Prov4MLLOD.LVL_1,
-            #         })
-            #         doc.wasStartedBy(train_activity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
-
-            #     metric_entity = doc.entity(f'{name}',{
-            #         'prov-ml:type':Prov4MLLOD.get_lv1_attr('Metric'),
-            #         'prov:level':Prov4MLLOD.LVL_1,
-            #     })
-
-            #     for metric_value in metric_per_epoch:
-            #         metric_entity.add_attributes({
-            #             'mlflow:step-value':Prov4MLLOD.get_lv1_epoch_value(epoch, metric_value),
-            #         })
-            #     doc.wasGeneratedBy(metric_entity,f'epoch_{epoch}',
-            #                         identifier=f'{name}_{epoch}_gen',
-            #                         other_attributes={'prov:level':Prov4MLLOD.LVL_1})
-                
-            elif metric.context == Context.EVALUATION:
-                if not doc.get_record(f'eval'):
-                    eval_activity=doc.activity(f'eval',other_attributes={
-                    "prov-ml:type": Prov4MLLOD.get_lv1_attr("EvaluationExecution"),
+            elif ctx == Context.VALIDATION:
+                val_name = f'val_epoch_{epoch}'
+                if not doc.get_record(val_name):
+                    train_activity=doc.activity(val_name,other_attributes={
+                    "prov-ml:type": Prov4MLLOD.get_lv1_attr("ValidationExecution"),
                     'prov:level':Prov4MLLOD.LVL_1,
                     })
-                    doc.wasStartedBy(eval_activity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
-
-                metric_entity = doc.entity(f'{name}',{
-                    'prov-ml:type':Prov4MLLOD.get_lv1_attr('Metric'),
-                    'prov:level':Prov4MLLOD.LVL_1,
-                })
+                    doc.wasStartedBy(train_activity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
 
                 for metric_value in metric_per_epoch:
                     metric_entity.add_attributes({
                         'prov-ml:step-value':Prov4MLLOD.get_lv1_epoch_value(epoch, metric_value),
+                        'prov-ml:context': Prov4MLLOD.get_lv1_attr(ctx),
                     })
-                doc.wasGeneratedBy(metric_entity,f'eval',
-                                    identifier=f'eval_gen',
+                doc.wasGeneratedBy(metric_entity,val_name,
+                                    identifier=f'{name}_{epoch}_gen',
+                                    other_attributes={'prov:level':Prov4MLLOD.LVL_1})
+                
+            elif ctx == Context.EVALUATION:
+                if not doc.get_record(f'test'):
+                    eval_activity=doc.activity(f'test',other_attributes={
+                    "prov-ml:type": Prov4MLLOD.get_lv1_attr("TestingExecution"),
+                    'prov:level':Prov4MLLOD.LVL_1,
+                    })
+                    doc.wasStartedBy(eval_activity,run_activity,other_attributes={'prov:level':Prov4MLLOD.LVL_1})
+
+                for metric_value in metric_per_epoch:
+                    metric_entity.add_attributes({
+                        'prov-ml:step-value':Prov4MLLOD.get_lv1_epoch_value(epoch, metric_value),
+                        'prov-ml:context': Prov4MLLOD.get_lv1_attr(ctx),
+                    })
+                doc.wasGeneratedBy(metric_entity,f'test',
+                                    identifier=f'test_gen',
                                     other_attributes={'prov:level':Prov4MLLOD.LVL_1})
 
+            else: 
+                raise ValueError(f"Context {ctx} not recognized")
 
                         
     for name, param in PROV4ML_DATA.parameters.items():
