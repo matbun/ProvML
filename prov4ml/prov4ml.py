@@ -147,12 +147,23 @@ def start_run(
     """
     global USER_NAMESPACE, PROV_SAVE_PATH
 
+        
     USER_NAMESPACE = prov_user_namespace
     PROV_SAVE_PATH = provenance_save_dir
-    PROV4ML_DATA.experiment = experiment_name
+
+    global_rank = os.getenv("SLURM_PROCID", None)
+    PROV4ML_DATA.experiment = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
 
     if mlflow_save_dir:
-        mlflow.set_tracking_uri(os.path.join(mlflow_save_dir, MLFLOW_SUBDIR))
+        experiment_num = 0
+        if os.path.exists(mlflow_save_dir):
+            exps = os.listdir(mlflow_save_dir)
+        else:
+            exps = []
+        for exp in exps:
+            if experiment_name in exp:
+                experiment_num += 1
+        mlflow.set_tracking_uri(os.path.join(mlflow_save_dir, MLFLOW_SUBDIR + f"_{experiment_num}"))
 
     exp = mlflow.get_experiment_by_name(name=experiment_name)
     if not exp:
@@ -212,12 +223,12 @@ def end_run(create_graph: Optional[bool] = True):
     # for key,value in ds_tags['tags'].items():
     #     attributes[f'mlflow:{str(key).strip("mlflow.")}']=str(value)
 
-    graph_filename = f'provgraph_{run_id}.json'
-    dot_filename = f'provgraph_{run_id}.dot'
+    graph_filename = f'provgraph_' + PROV4ML_DATA.experiment + '.json'
+    dot_filename = f'provgraph_' + PROV4ML_DATA.experiment + '.dot'
     path_graph = "/".join([PROV_SAVE_PATH, graph_filename]) if PROV_SAVE_PATH else graph_filename
 
     if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
-        os.makedirs(PROV_SAVE_PATH)
+        os.makedirs(PROV_SAVE_PATH, exist_ok=True)
 
     with open(path_graph,'w') as prov_graph:
         doc.serialize(prov_graph)

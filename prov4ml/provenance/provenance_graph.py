@@ -63,7 +63,7 @@ def first_level_prov(
     doc.entity('source_code',{
         "prov-ml:type": Prov4MLLOD.get_lv1_attr("SourceCode"),
         "prov-ml:source_name": Prov4MLLOD.get_lv1_attr(__file__.split('/')[-1]),
-        "prov-ml:source_type": Prov4MLLOD.get_lv1_attr("LOCAL"), # TODO: get if on remote
+        "prov-ml:source_type": Prov4MLLOD.get_lv1_attr("LOCAL") if global_rank is None else Prov4MLLOD.get_lv1_attr("SLURM"),
         # "mlflow:source_name": Prov4MLLOD.get_lv1_attr(run.data.tags['mlflow.source.name']),
         # "mlflow:source_type": Prov4MLLOD.get_lv1_attr(run.data.tags['mlflow.source.type']),
         'prov:level':Prov4MLLOD.LVL_1,   
