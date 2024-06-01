@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 from .utils import energy_utils
 from .utils import flops_utils
+from .utils.funcs import prov4ml_experiment_matches
 from .logging import log_execution_start_time, log_execution_end_time
 from .provenance.provenance_graph import first_level_prov
 from .constants import MLFLOW_SUBDIR, ARTIFACTS_SUBDIR, PROV4ML_DATA
@@ -46,7 +47,17 @@ def start_run_ctx(
 
     USER_NAMESPACE = prov_user_namespace
     PROV_SAVE_PATH = provenance_save_dir
-    PROV4ML_DATA.experiment = experiment_name
+
+    global_rank = os.getenv("SLURM_PROCID", None)
+    PROV4ML_DATA.EXPERIMENT_NAME = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
+
+    # look at PROV dir how many experiments are there with the same name
+    if not os.path.exists(PROV_SAVE_PATH):
+        os.makedirs(PROV_SAVE_PATH, exist_ok=True)
+    prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
+    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
+
+    PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
     if mlflow_save_dir:
         mlflow.set_tracking_uri(os.path.join(mlflow_save_dir, MLFLOW_SUBDIR))
@@ -108,18 +119,22 @@ def start_run_ctx(
     # for key,value in ds_tags['tags'].items():
     #     attributes[f'mlflow:{str(key).strip("mlflow.")}']=str(value)
 
-    graph_filename = f'provgraph_{run_id}.json'
-    dot_filename = f'provgraph_{run_id}.dot'
-    path_graph = "/".join([PROV_SAVE_PATH, graph_filename]) if PROV_SAVE_PATH else graph_filename
+    graph_filename = f'provgraph_{PROV4ML_DATA.EXPERIMENT_NAME}.json'
+    dot_filename = f'provgraph_{PROV4ML_DATA.EXPERIMENT_NAME}.dot'
 
-    if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
-        os.makedirs(PROV_SAVE_PATH)
+    if not os.path.exists(PROV4ML_DATA.EXPERIMENT_DIR):
+        os.makedirs(PROV4ML_DATA.EXPERIMENT_DIR, exist_ok=True)
+
+    path_graph = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, graph_filename)
+
+    # if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
+    #     os.makedirs(PROV_SAVE_PATH)
 
     with open(path_graph,'w') as prov_graph:
         doc.serialize(prov_graph)
 
     if create_graph:
-        path_dot = "/".join([PROV_SAVE_PATH, dot_filename]) if PROV_SAVE_PATH else dot_filename
+        path_dot = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, dot_filename)
         with open(path_dot, 'w') as prov_dot:
             prov_dot.write(dot.prov_to_dot(doc).to_string())
 
@@ -147,12 +162,19 @@ def start_run(
     """
     global USER_NAMESPACE, PROV_SAVE_PATH
 
-        
     USER_NAMESPACE = prov_user_namespace
     PROV_SAVE_PATH = provenance_save_dir
 
     global_rank = os.getenv("SLURM_PROCID", None)
-    PROV4ML_DATA.experiment = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
+    PROV4ML_DATA.EXPERIMENT_NAME = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
+
+    # look at PROV dir how many experiments are there with the same name
+    if not os.path.exists(PROV_SAVE_PATH):
+        os.makedirs(PROV_SAVE_PATH, exist_ok=True)
+    prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
+    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
+
+    PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
     if mlflow_save_dir:
         experiment_num = 0
@@ -223,18 +245,22 @@ def end_run(create_graph: Optional[bool] = True):
     # for key,value in ds_tags['tags'].items():
     #     attributes[f'mlflow:{str(key).strip("mlflow.")}']=str(value)
 
-    graph_filename = f'provgraph_' + PROV4ML_DATA.experiment + '.json'
-    dot_filename = f'provgraph_' + PROV4ML_DATA.experiment + '.dot'
-    path_graph = "/".join([PROV_SAVE_PATH, graph_filename]) if PROV_SAVE_PATH else graph_filename
+    graph_filename = f'provgraph_{PROV4ML_DATA.EXPERIMENT_NAME}.json'
+    dot_filename = f'provgraph_{PROV4ML_DATA.EXPERIMENT_NAME}.dot'
+    
+    if not os.path.exists(PROV4ML_DATA.EXPERIMENT_DIR):
+        os.makedirs(PROV4ML_DATA.EXPERIMENT_DIR, exist_ok=True)
+    
+    path_graph = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, graph_filename)
 
-    if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
-        os.makedirs(PROV_SAVE_PATH, exist_ok=True)
+    # if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
+    #     os.makedirs(PROV_SAVE_PATH, exist_ok=True)
 
     with open(path_graph,'w') as prov_graph:
         doc.serialize(prov_graph)
 
     if create_graph:
-        path_dot = "/".join([PROV_SAVE_PATH, dot_filename]) if PROV_SAVE_PATH else dot_filename
+        path_dot = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, dot_filename)
         with open(path_dot, 'w') as prov_dot:
             prov_dot.write(dot.prov_to_dot(doc).to_string())
 

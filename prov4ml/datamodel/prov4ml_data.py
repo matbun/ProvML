@@ -21,7 +21,8 @@ class Prov4MLData:
         self.parameters: Dict[str, ParameterInfo] = {}
         self.artifacts: Dict[(str, Context), ArtifactInfo] = {}
 
-        self.experiment_name = "test_experiment"
+        self.EXPERIMENT_NAME = "test_experiment"
+        self.EXPERIMENT_DIR = "test_experiment_dir"
 
     def add_metric(self, metric: str, value: Any, step: int, context: Optional[Any] = None) -> None:
         """
