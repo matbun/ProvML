@@ -24,7 +24,8 @@ def start_run_ctx(
     tags: Optional[Dict[str, Any]] = None,
     description: Optional[str] = None,
     log_system_metrics: Optional[bool] = None, 
-    create_graph: Optional[bool] = True
+    create_graph: Optional[bool] = False, 
+    create_svg: Optional[bool] = False
     ) -> ActiveRun: # type: ignore
     """
     Starts an MLflow run and generates provenance information.
@@ -48,6 +49,9 @@ def start_run_ctx(
     USER_NAMESPACE = prov_user_namespace
     PROV_SAVE_PATH = provenance_save_dir
 
+    if create_svg and not create_graph:
+        raise ValueError("Cannot create SVG without creating the graph.")
+
     global_rank = os.getenv("SLURM_PROCID", None)
     PROV4ML_DATA.EXPERIMENT_NAME = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
 
@@ -55,7 +59,7 @@ def start_run_ctx(
     if not os.path.exists(PROV_SAVE_PATH):
         os.makedirs(PROV_SAVE_PATH, exist_ok=True)
     prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
-    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
+    run_id = len([exp for exp in prev_exps if prov4ml_matches(experiment_name, exp)]) 
 
     PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
@@ -172,7 +176,7 @@ def start_run(
     if not os.path.exists(PROV_SAVE_PATH):
         os.makedirs(PROV_SAVE_PATH, exist_ok=True)
     prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
-    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
+    run_id = len([exp for exp in prev_exps if prov4ml_matches(experiment_name, exp)]) 
 
     PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
@@ -215,8 +219,14 @@ def start_run(
 
     log_execution_start_time()
 
-def end_run(create_graph: Optional[bool] = True): 
+def end_run(
+        create_graph: Optional[bool] = False, 
+        create_svg: Optional[bool] = False
+        ): 
     """Ends the active MLflow run, generates provenance graph, and saves it."""
+
+    if create_svg and not create_graph:
+        raise ValueError("Cannot create SVG without creating the graph.")
     
     log_execution_end_time()
 
@@ -264,10 +274,5 @@ def end_run(create_graph: Optional[bool] = True):
         with open(path_dot, 'w') as prov_dot:
             prov_dot.write(dot.prov_to_dot(doc).to_string())
 
-def get_run_id(): 
-    """Returns the ID of the currently active MLflow run.
-
-    Returns:
-        str: The ID of the currently active MLflow run.
-    """
-    return mlflow.active_run().info.run_id
+    if create_svg:
+        os.system(f"dot -Tsvg -O {path_dot}")
