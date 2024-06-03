@@ -48,7 +48,7 @@ def first_level_prov(
         "prov:level": Prov4MLLOD.LVL_1
     })
     #experiment entity generation
-    experiment = doc.entity(PROV4ML_DATA.experiment_name,other_attributes={
+    experiment = doc.entity(PROV4ML_DATA.EXPERIMENT_NAME,other_attributes={
         "prov-ml:type": Prov4MLLOD.get_lv1_attr("Experiment"),
         # "mlflow:experiment_id": Prov4MLLOD.get_lv1_attr(run.info.experiment_id),
         "prov:level":Prov4MLLOD.LVL_1

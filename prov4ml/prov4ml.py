@@ -59,7 +59,7 @@ def start_run_ctx(
     if not os.path.exists(PROV_SAVE_PATH):
         os.makedirs(PROV_SAVE_PATH, exist_ok=True)
     prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
-    run_id = len([exp for exp in prev_exps if prov4ml_matches(experiment_name, exp)]) 
+    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
 
     PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
@@ -176,7 +176,7 @@ def start_run(
     if not os.path.exists(PROV_SAVE_PATH):
         os.makedirs(PROV_SAVE_PATH, exist_ok=True)
     prev_exps = os.listdir(PROV_SAVE_PATH) if PROV_SAVE_PATH else []
-    run_id = len([exp for exp in prev_exps if prov4ml_matches(experiment_name, exp)]) 
+    run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
 
     PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
 
