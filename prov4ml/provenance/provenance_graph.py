@@ -107,7 +107,7 @@ def first_level_prov(
                         'prov-ml:context': Prov4MLLOD.get_lv1_attr(ctx),
                     })
                 doc.wasGeneratedBy(metric_entity,f'epoch_{epoch}',
-                                    identifier=f'{name}_{epoch}_gen',
+                                    identifier=f'{name}_train_{epoch}_gen',
                                     other_attributes={'prov:level':Prov4MLLOD.LVL_1})
                 
             elif ctx == Context.VALIDATION:
@@ -125,7 +125,7 @@ def first_level_prov(
                         'prov-ml:context': Prov4MLLOD.get_lv1_attr(ctx),
                     })
                 doc.wasGeneratedBy(metric_entity,val_name,
-                                    identifier=f'{name}_{epoch}_gen',
+                                    identifier=f'{name}_val_{epoch}_gen',
                                     other_attributes={'prov:level':Prov4MLLOD.LVL_1})
                 
             elif ctx == Context.EVALUATION:
