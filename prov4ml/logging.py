@@ -110,7 +110,10 @@ def log_model_memory_footprint(model: Union[torch.nn.Module, Any], model_name: s
     try: 
         if hasattr(model, "trainer"): 
             precision_to_bits = {"64": 64, "32": 32, "16": 16, "bf16": 16}
-            precision = precision_to_bits.get(model.trainer.precision, 32)  
+            if hasattr(model.trainer, "precision"):
+                precision = precision_to_bits.get(model.trainer.precision, 32)
+            else: 
+                precision = 32
         else: 
             precision = 32
     except RuntimeError: 
