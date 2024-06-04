@@ -41,5 +41,8 @@ For detailed information, please refer to the following documentation files:
 - [Carbon Metrics](./wiki/carbon.md)
 - [System Metrics](./wiki/system.md)
 - [Time Metrics](./wiki/time.md)
+- [Artifact Logging](./wiki/artifact.md)
+- [Loggers](./wiki/loggers.md)
 - [Usage with PyTorch](./wiki/usage_pytorch.md)
 - [Usage with Lightning](./wiki/usage_lightning.md)
+- [Usage with Logger](./wiki/usage_logger.md)
