@@ -23,6 +23,7 @@ class Prov4MLData:
 
         self.EXPERIMENT_NAME = "test_experiment"
         self.EXPERIMENT_DIR = "test_experiment_dir"
+        self.ARTIFACTS_DIR = "test_artifacts_dir"
 
     def add_metric(self, metric: str, value: Any, step: int, context: Optional[Any] = None) -> None:
         """

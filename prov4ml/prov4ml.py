@@ -54,6 +54,7 @@ def start_run_ctx(
 
     global_rank = os.getenv("SLURM_PROCID", None)
     PROV4ML_DATA.EXPERIMENT_NAME = experiment_name + f"_GR{global_rank}" if global_rank else experiment_name
+    PROV4ML_DATA.ARTIFACTS_DIR = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, ARTIFACTS_SUBDIR)
 
     # look at PROV dir how many experiments are there with the same name
     if not os.path.exists(PROV_SAVE_PATH):
@@ -71,7 +72,7 @@ def start_run_ctx(
         if mlflow_save_dir: 
             experiment_id = mlflow.create_experiment(
                 name=experiment_name,
-                artifact_location=os.path.join(mlflow_save_dir, ARTIFACTS_SUBDIR)
+                artifact_location=os.path.join(mlflow_save_dir, PROV4ML_DATA.ARTIFACTS_DIR)
             )
         else: 
             experiment_id = mlflow.create_experiment(name=experiment_name)
@@ -179,6 +180,7 @@ def start_run(
     run_id = len([exp for exp in prev_exps if prov4ml_experiment_matches(experiment_name, exp)]) 
 
     PROV4ML_DATA.EXPERIMENT_DIR = os.path.join(PROV_SAVE_PATH, experiment_name + f"_{run_id}")
+    PROV4ML_DATA.ARTIFACTS_DIR = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, ARTIFACTS_SUBDIR)
 
     if mlflow_save_dir:
         experiment_num = 0
@@ -196,7 +198,7 @@ def start_run(
         if mlflow_save_dir: 
             experiment_id = mlflow.create_experiment(
                 name=experiment_name,
-                artifact_location=os.path.join(mlflow_save_dir, ARTIFACTS_SUBDIR)
+                artifact_location=os.path.join(mlflow_save_dir, PROV4ML_DATA.ARTIFACTS_DIR)
             )
         else: 
             experiment_id = mlflow.create_experiment(name=experiment_name)
@@ -247,7 +249,6 @@ def end_run(
     doc.add_namespace('prov-ml', 'prov-ml')
     
     doc = first_level_prov(active_run,doc)
-    # doc = second_level_prov(active_run,doc)    
 
     #datasets are associated with two sets of tags: input tags, of the DatasetInput object, and the tags of the dataset itself
     # for input_tag in dataset_input.tags:
@@ -262,9 +263,6 @@ def end_run(
         os.makedirs(PROV4ML_DATA.EXPERIMENT_DIR, exist_ok=True)
     
     path_graph = os.path.join(PROV4ML_DATA.EXPERIMENT_DIR, graph_filename)
-
-    # if PROV_SAVE_PATH and not os.path.exists(PROV_SAVE_PATH):
-    #     os.makedirs(PROV_SAVE_PATH, exist_ok=True)
 
     with open(path_graph,'w') as prov_graph:
         doc.serialize(prov_graph)

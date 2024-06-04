@@ -97,4 +97,4 @@ test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE)
 result = trainer.test(mnist_model, test_loader)
 
 # save the provenance graph
-prov4ml.end_run()
+prov4ml.end_run(create_graph=True, create_svg=True)

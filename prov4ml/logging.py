@@ -290,8 +290,8 @@ def save_model_version(
         context (Context): The context in which the model is saved.
         step (Optional[int]): The step or epoch number associated with the saved model. Defaults to None.
     """
-
-    path = os.path.join(ARTIFACTS_SUBDIR, model_name)
+    
+    path = os.path.join(PROV4ML_DATA.ARTIFACTS_DIR, model_name)
     if not os.path.exists(path):
         os.makedirs(path)
 
