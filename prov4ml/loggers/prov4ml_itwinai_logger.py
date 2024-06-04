@@ -30,6 +30,8 @@ class ProvMLItwinAILogger(Logger):
         experiment_name="experiment_name", 
         provenance_save_dir="prov",
         mlflow_save_dir="test_runs", 
+        create_graph=False,
+        create_svg=False,
     ) -> None:
         """
         Initializes a ProvMLLogger instance.
@@ -46,6 +48,9 @@ class ProvMLItwinAILogger(Logger):
         self.save_dir = mlflow_save_dir
         self.prov_user_namespace = prov_user_namespace
         self.provenance_save_dir = provenance_save_dir
+
+        self.create_graph = create_graph
+        self.create_svg = create_svg
 
     @property
     @override
@@ -110,15 +115,13 @@ class ProvMLItwinAILogger(Logger):
             provenance_save_dir=self.provenance_save_dir,
             mlflow_save_dir=self.save_dir,
         )
-        pass
 
     @override
     def destroy_logger_context(self):
         """
         Destroys the logger context.
         """
-        end_run(create_graph=True, create_svg=True)
-        pass
+        end_run(create_graph=self.create_graph, create_svg=self.create_svg)
 
     @override
     def save_hyperparameters(self, params: Dict[str, Any]) -> None:

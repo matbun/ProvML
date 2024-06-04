@@ -70,7 +70,7 @@ logger.log(item=tform, identifier="dataset_transformation", kind=prov4ml.Logging
 
 train_ds = MNIST(PATH_DATASETS, train=True, download=True, transform=tform)
 val_ds = Subset(train_ds, range(BATCH_SIZE * 1))
-train_ds = Subset(train_ds, range(BATCH_SIZE * 2))
+train_ds = Subset(train_ds, range(BATCH_SIZE * 5))
 train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE)
 
 val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE)
