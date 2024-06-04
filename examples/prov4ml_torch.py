@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -79,4 +78,4 @@ for i, (x, y) in tqdm(enumerate(test_loader)):
 prov4ml.log_model(mnist_model, "mnist_model_final")
 
 # save the provenance graph
-prov4ml.end_run()
+prov4ml.end_run(create_graph=True, create_svg=True)
