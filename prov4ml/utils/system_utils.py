@@ -2,8 +2,8 @@
 import psutil
 import torch
 import sys
-import pyamdgpuinfo
 if sys.platform != 'darwin':
+    import pyamdgpuinfo
     import GPUtil
 else: 
     import apple_gpu
@@ -65,8 +65,8 @@ def get_gpu_power_usage() -> float:
             else:
                 gpu_power = 0.0
 
-            if gpu_power is None:
-                n_devices = pyamdgpuinfo.detect_gpus()
+            if gpu_power is None or gpu_power == 0.0:
+                # n_devices = pyamdgpuinfo.detect_gpus()
                 first_gpu = pyamdgpuinfo.get_gpu(0) # returns a GPUInfo object
                 gpu_power = first_gpu.query_power()
     else:
@@ -96,8 +96,8 @@ def get_gpu_temperature() -> float:
             else:
                 gpu_temperature = 0.0
 
-            if gpu_temperature is None:
-                n_devices = pyamdgpuinfo.detect_gpus()
+            if gpu_temperature is None or gpu_temperature == 0.0:
+                # n_devices = pyamdgpuinfo.detect_gpus()
                 first_gpu = pyamdgpuinfo.get_gpu(0)
                 gpu_temperature = first_gpu.query_temperature()
     else:
@@ -126,10 +126,10 @@ def get_gpu_usage() -> float:
             else:
                 gpu_utilization = 0.0
 
-            if gpu_utilization is None:
-                n_devices = pyamdgpuinfo.detect_gpus()
+            if gpu_utilization is None or gpu_utilization == 0.0:
+                # n_devices = pyamdgpuinfo.detect_gpus()
                 first_gpu = pyamdgpuinfo.get_gpu(0)
-                gpu_utilization = first.query_load()
+                gpu_utilization = first_gpu.query_load()
     else:
         statistics = apple_gpu.accelerator_performance_statistics()
         if 'Device Utilization' in statistics.keys():

@@ -257,7 +257,7 @@ def save_model_version(
 
     path = os.path.join(PROV4ML_DATA.ARTIFACTS_DIR, model_name)
     if not os.path.exists(path):
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
 
     torch.save(model.state_dict(), f"{path}/{model_name}.pth")
     log_artifact(f"{path}/{model_name}.pth", context=context, step=step, timestamp=timestamp)
