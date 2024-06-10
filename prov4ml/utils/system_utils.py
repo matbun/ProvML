@@ -67,8 +67,12 @@ def get_gpu_power_usage() -> float:
 
             if gpu_power is None or gpu_power == 0.0:
                 # n_devices = pyamdgpuinfo.detect_gpus()
-                first_gpu = pyamdgpuinfo.get_gpu(0) # returns a GPUInfo object
-                gpu_power = first_gpu.query_power()
+                try: 
+                    first_gpu = pyamdgpuinfo.get_gpu(0)
+                    gpu_temperature = first_gpu.query_temperature()
+                except:
+                    gpu_temperature = 0.0
+                    warnings.warn("Could not get GPU power.")
     else:
         statistics = apple_gpu.accelerator_performance_statistics()
         if 'Power Usage' in statistics.keys():
@@ -97,9 +101,12 @@ def get_gpu_temperature() -> float:
                 gpu_temperature = 0.0
 
             if gpu_temperature is None or gpu_temperature == 0.0:
-                # n_devices = pyamdgpuinfo.detect_gpus()
-                first_gpu = pyamdgpuinfo.get_gpu(0)
-                gpu_temperature = first_gpu.query_temperature()
+                try: 
+                    first_gpu = pyamdgpuinfo.get_gpu(0)
+                    gpu_temperature = first_gpu.query_temperature()
+                except:
+                    gpu_temperature = 0.0
+                    warnings.warn("Could not get GPU temperature.")
     else:
         statistics = apple_gpu.accelerator_performance_statistics()
         if 'Temperature' in statistics.keys():
@@ -128,8 +135,12 @@ def get_gpu_usage() -> float:
 
             if gpu_utilization is None or gpu_utilization == 0.0:
                 # n_devices = pyamdgpuinfo.detect_gpus()
-                first_gpu = pyamdgpuinfo.get_gpu(0)
-                gpu_utilization = first_gpu.query_load()
+                try: 
+                    first_gpu = pyamdgpuinfo.get_gpu(0)
+                    gpu_temperature = first_gpu.query_temperature()
+                except:
+                    gpu_temperature = 0.0
+                    warnings.warn("Could not get GPU usage.")
     else:
         statistics = apple_gpu.accelerator_performance_statistics()
         if 'Device Utilization' in statistics.keys():
