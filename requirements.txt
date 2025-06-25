@@ -16,3 +16,5 @@ typing_extensions
 prov
 pydot
 pipreqs
+lxml
+rdflib
