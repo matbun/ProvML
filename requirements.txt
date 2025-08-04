@@ -1,7 +1,6 @@
 codecarbon
 fvcore
 geocoder
-gpustat
 GPUtil
 lightning
 netCDF4
